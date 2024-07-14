@@ -99,3 +99,69 @@ resource "aws_instance" "public_instance" {
     Name = var.public_ec2_name
   }
 }
+
+# Jenkins Setup
+
+resource "aws_security_group" "jenkins_sg" {
+  vpc_id      = aws_vpc.main_network.id
+  name        = "jenkins-sg"
+  description = "Allow Jenkins and SSH"
+
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_instance" "jenkins" {
+  ami                         = var.ec2_ami
+  instance_type               = var.ec2_type
+  subnet_id                   = aws_subnet.public_subnet.id
+  vpc_security_group_ids      = [aws_security_group.public_sg.id, aws_security_group.jenkins_sg.id]
+  key_name                    = var.ssh_key_name
+  associate_public_ip_address = true
+
+  # AWS linux Setup
+  # user_data = <<-EOF
+  #             #!/bin/bash
+  #             yum update -y
+  #             yum install -y java-1.8.0-openjdk-devel
+  #             wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat/jenkins.repo
+  #             rpm --import https://pkg.jenkins.io/redhat/jenkins.io.key
+  #             yum install -y jenkins
+  #             systemctl start jenkins
+  #             systemctl enable jenkins
+  #             EOF
+
+  # Ubuntu Setup
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo apt update -y
+              sudo apt install fontconfig openjdk-17-jre -y
+              sudo wget -O /usr/share/keyrings/jenkins-keyring.asc https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+              echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]" https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+              sudo apt install jenkins -y
+              sudo systemctl enable jenkins
+              sudo systemctl restart jenkins
+              EOF
+
+  tags = {
+    Name = "Jenkins-Server"
+  }
+}

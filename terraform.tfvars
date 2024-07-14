@@ -22,3 +22,10 @@ ec2_ami         = "ami-04a81a99f5ec58529" # Latest Ubuntu AMI ID
 ec2_type        = "t2.micro"
 public_ec2_name = "public_instance"
 ssh_key_name    = "my_public_key"
+
+# Jenkins Setup
+##### EC2 Jenkins INSTANCE #####
+aws_region    = "us-west-2"
+ami_id        = "ami-04a81a99f5ec58529"
+instance_type = "t2.micro"
+key_name      = "my_public_key"

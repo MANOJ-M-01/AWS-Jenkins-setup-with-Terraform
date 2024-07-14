@@ -17,3 +17,9 @@ output "public_instance_public_ip" {
   description = "Public IP address of the public instance"
   value       = aws_instance.public_instance.public_ip
 }
+
+# Jenkins Setup
+output "instance_ip" {
+  description = "The public IP of the Jenkins instance."
+  value       = aws_instance.jenkins.public_ip
+}
